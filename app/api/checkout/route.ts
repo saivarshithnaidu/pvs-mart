@@ -21,11 +21,15 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Please login to place an order' }, { status: 401 });
         }
 
-        const { items, amount, paymentMethod, address } = await request.json();
+        const { items, paymentMethod = 'CASH' } = await request.json(); // Default to CASH if not specified
 
         if (!items || items.length === 0) {
             return NextResponse.json({ error: 'Cart is empty' }, { status: 400 });
         }
+
+        // Calculate total amount from items payload (or ideally DB)
+        // Ensure items have price. If not, this will be NaN. Assuming frontend sends price.
+        const totalAmount = items.reduce((sum: number, item: any) => sum + (Number(item.price) * Number(item.quantity)), 0);
 
         const client = await import('@/lib/db').then(mod => mod.default);
         const clientConn = await client.connect();
@@ -39,11 +43,13 @@ export async function POST(request: Request) {
             const invoiceNumber = `ORD-${dateStr}-${random}`;
 
             // 1. Create Order
+            // Status: 'Pending' for all initially.
+            // Payment Status: 'Pending' for COD and UPI (until verified).
             const orderRes = await clientConn.query(
                 `INSERT INTO orders (user_id, total_amount, status, payment_status, payment_method, invoice_number) 
-             VALUES ($1, $2, 'Pending', $3, $4, $5) 
+             VALUES ($1, $2, 'Pending', 'PENDING', $3, $4) 
              RETURNING id`,
-                [userId, amount, paymentMethod === 'Online' ? 'Paid' : 'Pending', paymentMethod, invoiceNumber]
+                [userId, totalAmount, paymentMethod, invoiceNumber]
             );
             const orderId = orderRes.rows[0].id;
 

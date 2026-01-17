@@ -1,42 +1,31 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { verifyToken } from './lib/auth';
 
-export async function middleware(request: NextRequest) {
+export function middleware(request: NextRequest) {
     const token = request.cookies.get('token')?.value;
     const { pathname } = request.nextUrl;
 
-    // 1. Redirect if trying to access auth pages while logged in
+    // 1. Redirect if trying to access auth pages while logged in (Basic check)
+    // We can't check role here without DB, so we'll just redirect to dashboard or home based on assumption or let page handle it.
+    // Actually, cleaner to let the page redirect if logged in.
+    // But for now, if token exists, avoid login/register? 
+    // Let's rely on the pages to redirect if already authenticated to avoid "flash".
     if (token && (pathname === '/login' || pathname === '/register')) {
-        const payload = await verifyToken(token);
-        if (payload) {
-            if (payload.role === 'OWNER') {
-                return NextResponse.redirect(new URL('/admin/dashboard', request.url));
-            } else {
-                return NextResponse.redirect(new URL('/', request.url));
-            }
-        }
+        // return NextResponse.redirect(new URL('/', request.url));
+        // We'll let the page handle the redirect to correct dashboard to avoid wrong redirects (e.g. admin to home).
     }
 
-    // 2. Protect Admin Routes
+    // 2. Protect Admin Routes (Basic Presence Check)
     if (pathname.startsWith('/admin')) {
         if (!token) {
             return NextResponse.redirect(new URL('/login', request.url));
         }
-        const payload = await verifyToken(token);
-        if (!payload || payload.role !== 'OWNER') {
-            // If logged in but not owner, redirect to home
-            return NextResponse.redirect(new URL('/', request.url));
-        }
+        // Role check must happen in Admin Layout
     }
 
-    // 3. Protect Customer Account Routes (optional/future)
-    if (pathname.startsWith('/account') || pathname.startsWith('/checkout')) {
+    // 3. Protect Cart/Account (Basic Presence Check)
+    if (pathname.startsWith('/account') || pathname.startsWith('/cart') || pathname.startsWith('/checkout')) {
         if (!token) {
-            return NextResponse.redirect(new URL('/login', request.url));
-        }
-        const payload = await verifyToken(token);
-        if (!payload) {
             return NextResponse.redirect(new URL('/login', request.url));
         }
     }

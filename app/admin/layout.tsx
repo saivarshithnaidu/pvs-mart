@@ -1,26 +1,17 @@
-'use client';
-
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, Package, ShoppingCart, Receipt, LogOut, FileText } from 'lucide-react';
+import { Headers } from 'next/dist/compiled/@edge-runtime/primitives'; // Internal type fix or just ignore
+import { headers } from 'next/headers';
+import { redirect } from 'next/navigation';
+import { getSession } from '@/lib/auth';
+import Sidebar from './Sidebar'; // Renamed to Sidebar to fix resolution
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
-    const pathname = usePathname();
-    const router = useRouter();
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+    // Server-side Route Protection
+    const session = await getSession();
 
-    const handleLogout = async () => {
-        await fetch('/api/auth/logout', { method: 'POST' });
-        router.push('/login');
-        router.refresh();
-    };
-
-    const navItems = [
-        { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-        { href: '/admin/products', label: 'Products', icon: Package },
-        { href: '/admin/orders', label: 'Orders', icon: ShoppingCart },
-        { href: '/admin/billing', label: 'Offline Billing', icon: Receipt },
-        { href: '/admin/billing/history', label: 'History', icon: FileText },
-    ];
+    if (!session || session.role !== 'OWNER') {
+        redirect('/login');
+    }
 
     return (
         <div className="flex h-screen bg-gray-100">
@@ -29,34 +20,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <div className="p-6 border-b">
                     <h1 className="text-xl font-bold text-gray-800">PVS Mart Admin</h1>
                 </div>
-                <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-                    {navItems.map((item) => {
-                        const Icon = item.icon;
-                        const isActive = pathname === item.href;
-                        return (
-                            <Link
-                                key={item.href}
-                                href={item.href}
-                                className={`flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors ${isActive
-                                    ? 'bg-blue-50 text-blue-700'
-                                    : 'text-gray-700 hover:bg-gray-100'
-                                    }`}
-                            >
-                                <Icon className="w-5 h-5 mr-3" />
-                                {item.label}
-                            </Link>
-                        );
-                    })}
-                </nav>
-                <div className="p-4 border-t">
-                    <button
-                        onClick={handleLogout}
-                        className="flex items-center w-full px-4 py-3 text-sm font-medium text-red-600 rounded-md hover:bg-red-50 transition-colors"
-                    >
-                        <LogOut className="w-5 h-5 mr-3" />
-                        Sign Out
-                    </button>
-                </div>
+
+                <Sidebar />
             </aside>
 
             {/* Main Content */}

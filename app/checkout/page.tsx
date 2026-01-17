@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useCart } from '@/context/CartContext';
 import { useRouter } from 'next/navigation';
 
@@ -8,11 +8,18 @@ export default function CheckoutPage() {
     const { items, cartTotal, clearCart } = useCart();
     const router = useRouter();
     const [loading, setLoading] = useState(false);
-    const [paymentMethod, setPaymentMethod] = useState('Online');
+    const [paymentMethod, setPaymentMethod] = useState('UPI');
     const [address, setAddress] = useState('');
+    const [isSuccess, setIsSuccess] = useState(false); // Track success state
 
-    if (items.length === 0) {
-        if (typeof window !== 'undefined') router.push('/cart');
+    // Prevent redirect if success state is active
+    useEffect(() => {
+        if (!isSuccess && items.length === 0) {
+            router.push('/cart');
+        }
+    }, [items, router, isSuccess]);
+
+    if (items.length === 0 && !isSuccess) {
         return null;
     }
 
@@ -25,6 +32,7 @@ export default function CheckoutPage() {
         setLoading(true);
 
         try {
+            // 1. Create Order
             const res = await fetch('/api/checkout', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -37,17 +45,28 @@ export default function CheckoutPage() {
             });
 
             if (res.ok) {
-                // Success
+                const data = await res.json();
+
+                // 2. Set Success Flag FIRST to prevent redirect loop
+                setIsSuccess(true);
+
+                // 3. Clear Cart ONLY after success
                 clearCart();
-                alert('Order Placed Successfully!');
-                router.push('/'); // Or order success page
+
+                // 4. Redirect based on Payment Method
+                if (paymentMethod === 'UPI') {
+                    router.push(`/payment/${data.orderId}`);
+                } else {
+                    // Cash on Delivery
+                    router.push('/checkout/success');
+                }
             } else {
                 const data = await res.json();
                 alert(data.error || 'Failed to place order');
             }
         } catch (e) {
             console.error(e);
-            alert('An error occurred');
+            alert('An error occurred during checkout');
         } finally {
             setLoading(false);
         }
@@ -96,12 +115,12 @@ export default function CheckoutPage() {
                                 <input
                                     type="radio"
                                     name="payment"
-                                    value="Online"
-                                    checked={paymentMethod === 'Online'}
-                                    onChange={() => setPaymentMethod('Online')}
+                                    value="UPI"
+                                    checked={paymentMethod === 'UPI'}
+                                    onChange={() => setPaymentMethod('UPI')}
                                     className="h-4 w-4 text-blue-600 focus:ring-blue-500"
                                 />
-                                <span className="font-medium text-gray-900">Online Payment (Mock Gateway)</span>
+                                <span className="font-medium text-gray-900">UPI / QR Code</span>
                             </label>
                             <label className="flex items-center space-x-3 p-3 border rounded-md cursor-pointer hover:bg-gray-50">
                                 <input

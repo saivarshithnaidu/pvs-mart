@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 
 interface Order {
@@ -26,14 +27,34 @@ export default function MyOrdersPage() {
             .finally(() => setLoading(false));
     }, []);
 
+    const router = useRouter(); // Import this
+
+    const handleLogout = async () => {
+        try {
+            await fetch('/api/auth/logout', { method: 'POST' });
+            router.push('/');
+            router.refresh();
+        } catch (error) {
+            console.error('Logout failed', error);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-gray-50 py-12 px-4">
             <div className="max-w-3xl mx-auto">
-                <div className="flex items-center mb-8">
-                    <Link href="/" className="mr-4 text-gray-500 hover:text-gray-900">
-                        <ArrowLeft className="w-6 h-6" />
-                    </Link>
-                    <h1 className="text-2xl font-bold text-gray-900">My Orders</h1>
+                <div className="flex items-center justify-between mb-8">
+                    <div className="flex items-center">
+                        <Link href="/" className="mr-4 text-gray-500 hover:text-gray-900">
+                            <ArrowLeft className="w-6 h-6" />
+                        </Link>
+                        <h1 className="text-2xl font-bold text-gray-900">My Orders</h1>
+                    </div>
+                    <button
+                        onClick={handleLogout}
+                        className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 transition"
+                    >
+                        Sign Out
+                    </button>
                 </div>
 
                 {loading ? (

@@ -48,7 +48,7 @@ export async function PUT(request: Request) {
 
         const { id, status } = await request.json();
 
-        const validStatuses = ['Pending', 'Preparing', 'Ready', 'Completed', 'Cancelled'];
+        const validStatuses = ['Pending', 'Preparing', 'Ready', 'Completed', 'Cancelled', 'PAYMENT_SUBMITTED'];
         if (!validStatuses.includes(status)) {
             return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
         }

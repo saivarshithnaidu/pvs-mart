@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { RefreshCw } from 'lucide-react';
+import { verifyPayment } from '@/app/actions/admin';
 
 interface Order {
     id: number;
@@ -10,6 +11,7 @@ interface Order {
     total_amount: string;
     status: string;
     payment_status: string;
+    payment_method: string;
     created_at: string;
     user_name?: string; // If we join
 }
@@ -96,9 +98,27 @@ export default function AdminOrdersPage() {
                                             {order.status}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.payment_status}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <div>{order.payment_status}</div>
+                                        <div className="text-xs text-gray-400">{order.payment_method}</div>
+                                    </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
                                         <Link href={`/admin/orders/${order.id}`} className="text-blue-600 hover:text-blue-900 font-bold underline">View</Link>
+
+                                        {/* Payment Verification for UPI & CASH */}
+                                        {(order.payment_method === 'UPI' || order.payment_method === 'CASH') && order.payment_status === 'PENDING' && (
+                                            <button
+                                                onClick={async () => {
+                                                    if (!confirm('Confirm payment received in bank?')) return;
+                                                    await verifyPayment(order.id);
+                                                    fetchOrders();
+                                                }}
+                                                className="text-purple-600 hover:text-purple-900 font-bold border border-purple-200 px-2 py-1 rounded"
+                                            >
+                                                Verify Pay
+                                            </button>
+                                        )}
+
                                         {order.status === 'Pending' && (
                                             <button onClick={() => updateStatus(order.id, 'Preparing')} className="text-blue-600 hover:text-blue-900">Prepare</button>
                                         )}

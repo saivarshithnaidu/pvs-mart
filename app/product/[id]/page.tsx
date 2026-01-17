@@ -5,6 +5,8 @@ import Navbar from '@/components/Navbar';
 import { ShoppingCart, ArrowLeft, ArrowRight, Star } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import Link from 'next/link';
+import ViewTracker from '@/components/ViewTracker';
+import RecentViewsClient from '@/components/RecentViewsClient';
 
 interface Product {
     id: number;
@@ -63,6 +65,9 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
     return (
         <div className="min-h-screen bg-slate-50 pb-20">
             <Navbar />
+
+            {/* Track View */}
+            <ViewTracker productId={product.id} />
 
             {/* Breadcrumb */}
             <div className="max-w-7xl mx-auto px-4 py-4 text-sm text-slate-500">
@@ -151,6 +156,9 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                         </div>
                     </div>
                 </div>
+
+                {/* Recently Viewed */}
+                <RecentViewsClient excludeIds={[product.id]} />
             </main>
         </div>
     );

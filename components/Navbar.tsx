@@ -37,36 +37,36 @@ export default function Navbar() {
                 <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-xl mx-8 relative">
                     <input
                         type="text"
-                        placeholder="Search for spices, rice, drinks..."
-                        className="w-full pl-10 pr-4 py-2 bg-slate-100 border border-slate-200 rounded-full focus:ring-2 focus:ring-blue-500 outline-none text-slate-800 placeholder-slate-500"
+                        placeholder="Search daily essentials, rice, milk..."
+                        className="w-full pl-10 pr-4 py-2 bg-blue-50 border border-blue-100 rounded-full focus:ring-2 focus:ring-blue-600 outline-none text-gray-900 placeholder-gray-400 transition-all font-medium"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-400 w-4 h-4" />
                 </form>
 
                 {/* Icons */}
                 <div className="flex items-center space-x-6">
-                    <Link href="/account/orders" className="text-slate-600 hover:text-blue-700 flex flex-col items-center">
-                        <User className="w-6 h-6" />
-                        <span className="text-xs font-bold hidden sm:block">Orders</span>
+                    <Link href="/account/orders" className="text-gray-700 hover:text-blue-700 flex flex-col items-center group">
+                        <User className="w-6 h-6 group-hover:scale-110 transition-transform" />
+                        <span className="text-xs font-bold hidden sm:block mt-0.5">Orders</span>
                     </Link>
-                    <Link href="/cart" className="relative text-slate-600 hover:text-blue-700 flex flex-col items-center">
+                    <Link href="/cart" className="relative text-gray-700 hover:text-blue-700 flex flex-col items-center group">
                         <div className="relative">
-                            <ShoppingCart className="w-6 h-6" />
+                            <ShoppingCart className="w-6 h-6 group-hover:scale-110 transition-transform" />
                             {cartCount > 0 && (
-                                <span className="absolute -top-2 -right-2 bg-red-600 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full">
+                                <span className="absolute -top-2 -right-2 bg-green-600 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full animate-bounce">
                                     {cartCount}
                                 </span>
                             )}
                         </div>
-                        <span className="text-xs font-bold hidden sm:block">Cart</span>
+                        <span className="text-xs font-bold hidden sm:block mt-0.5">Cart</span>
                     </Link>
                 </div>
             </div>
 
             {/* Category Bar */}
-            <div className="bg-slate-800 text-white overflow-x-auto">
+            <div className="bg-blue-600 text-white overflow-x-auto shadow-md">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex space-x-8 py-3 text-sm font-bold whitespace-nowrap">
                         {CATEGORIES.map(cat => (
