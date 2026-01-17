@@ -63,6 +63,22 @@ export default function EditProductPage() {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
+    const handleUpload = async (file: File) => {
+        const data = new FormData();
+        data.append('file', file);
+
+        try {
+            const res = await fetch('/api/upload', { method: 'POST', body: data });
+            const json = await res.json();
+            if (json.url) {
+                setFormData(prev => ({ ...prev, image_url: json.url }));
+            }
+        } catch (err) {
+            console.error('Upload failed', err);
+            alert('Failed to upload image');
+        }
+    };
+
     const handlePaste = async (e: React.ClipboardEvent) => {
         const items = e.clipboardData.items;
         let file = null;
@@ -76,19 +92,7 @@ export default function EditProductPage() {
 
         if (file) {
             e.preventDefault();
-            const data = new FormData();
-            data.append('file', file);
-
-            try {
-                const res = await fetch('/api/upload', { method: 'POST', body: data });
-                const json = await res.json();
-                if (json.url) {
-                    setFormData(prev => ({ ...prev, image_url: json.url }));
-                }
-            } catch (err) {
-                console.error('Paste upload failed', err);
-                alert('Failed to upload pasted image');
-            }
+            await handleUpload(file);
         }
     };
 
@@ -194,28 +198,41 @@ export default function EditProductPage() {
                         {formData.image_url && (
                             <img src={formData.image_url} alt="Preview" className="w-20 h-20 object-cover rounded border border-slate-200" />
                         )}
-                        <input
-                            type="file"
-                            accept="image/*"
-                            onChange={async (e) => {
-                                const file = e.target.files?.[0];
-                                if (!file) return;
+                        <div className="flex flex-col space-y-3 mb-4">
+                            <input
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) handleUpload(file);
+                                }}
+                                className="text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                            />
 
-                                const data = new FormData();
-                                data.append('file', file);
-
-                                try {
-                                    const res = await fetch('/api/upload', { method: 'POST', body: data });
-                                    const json = await res.json();
-                                    if (json.url) {
-                                        setFormData(prev => ({ ...prev, image_url: json.url }));
+                            <button
+                                type="button"
+                                onClick={async () => {
+                                    try {
+                                        const clipboardItems = await navigator.clipboard.read();
+                                        for (const item of clipboardItems) {
+                                            if (item.types.some(type => type.startsWith('image/'))) {
+                                                const blob = await item.getType(item.types.find(type => type.startsWith('image/'))!);
+                                                const file = new File([blob], "pasted-image.png", { type: blob.type });
+                                                await handleUpload(file);
+                                                return;
+                                            }
+                                        }
+                                        alert('No image found in clipboard');
+                                    } catch (err) {
+                                        console.error('Clipboard read failed', err);
+                                        alert('Failed to read clipboard. Please allow clipboard access.');
                                     }
-                                } catch (err) {
-                                    console.error('Upload failed', err);
-                                }
-                            }}
-                            className="text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                        />
+                                }}
+                                className="inline-flex items-center px-3 py-2 border border-slate-300 shadow-sm text-xs font-medium rounded text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 w-fit"
+                            >
+                                📋 Paste from Clipboard
+                            </button>
+                        </div>
                     </div>
 
                     <label className="block text-xs font-bold text-slate-500 mb-1">Or Image URL</label>
