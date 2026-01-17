@@ -4,7 +4,11 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { LayoutDashboard, Package, ShoppingCart, Receipt, LogOut, FileText, Users, Book } from 'lucide-react';
 
-export default function Sidebar() {
+interface SidebarProps {
+    onItemClick?: () => void;
+}
+
+export default function Sidebar({ onItemClick }: SidebarProps) {
     const pathname = usePathname();
     const router = useRouter();
 
@@ -12,6 +16,7 @@ export default function Sidebar() {
         await fetch('/api/auth/logout', { method: 'POST' });
         router.push('/login');
         router.refresh();
+        if (onItemClick) onItemClick();
     };
 
     const navItems = [
@@ -34,6 +39,7 @@ export default function Sidebar() {
                         <Link
                             key={item.href}
                             href={item.href}
+                            onClick={onItemClick}
                             className={`flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors ${isActive
                                 ? 'bg-blue-50 text-blue-700'
                                 : 'text-gray-700 hover:bg-gray-100'
@@ -57,4 +63,3 @@ export default function Sidebar() {
         </>
     );
 }
-// End of AdminSidebar component

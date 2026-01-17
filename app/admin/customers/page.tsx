@@ -17,7 +17,7 @@ export default async function CustomersPage() {
         <div className="space-y-6">
             <h2 className="text-2xl font-bold text-gray-800">Customer Management</h2>
 
-            <div className="bg-white rounded-lg shadowoverflow-hidden border border-gray-200">
+            <div className="bg-white rounded-lg shadow overflow-hidden border border-gray-200">
                 <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
